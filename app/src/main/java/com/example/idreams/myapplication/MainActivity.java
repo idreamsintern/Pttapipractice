@@ -1,11 +1,16 @@
 package com.example.idreams.myapplication;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.text.InputType;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,16 +22,19 @@ import org.apache.http.Header;
 
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.loopj.android.http.*;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends ActionBarActivity {
     final static String LOG_TAG = "MainActivity";
-    String Board="gossip";
-    String Period="1";
-    String Limit ="1";
+    String Board="lol";
+    String Period="10";
+    String Limit ="30";
+    private JSONObject j;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +51,14 @@ public class MainActivity extends Activity {
         Button mPeriod =(Button) findViewById(R.id.Periodbutton);
         final EditText mLimit =(EditText)findViewById(R.id.limitedittext);
         final TextView output = (TextView) findViewById(R.id.textView);
+
+        mLimit.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public  void onClick(View v)
+            {
+                Limit=mLimit.getText().toString();
+            }
+        });
 
         mPeriod.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -64,7 +80,7 @@ public class MainActivity extends Activity {
                 RestClient myclient = new RestClient();
                 RequestParams params = new RequestParams();
                 params.put("period", Period);
-                params.put("limit", mLimit.getText().toString());
+                params.put("limit", Limit);
                 params.put("board", Board);
                 params.put("token", "api_doc_token");
 
@@ -72,8 +88,12 @@ public class MainActivity extends Activity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                         try {
+                            new AlertDialog.Builder(MainActivity.this)
+                                    .setTitle("Get the data of Board")
+                                    .setMessage(Board).show();
                             // If the response is JSONObject instead of expected JSONArray
-                            output.setText(response.toString());
+                            //response.getJSONArray("result").getJSONObject(0)
+                            createshowlistactivity(response);
                             Log.i(LOG_TAG, "Success! " + response.toString());
                             Log.i(LOG_TAG, "Response Message: " + response.getString("message"));
                             Log.i(LOG_TAG, "Response Period" + response.getInt("period"));
@@ -85,7 +105,9 @@ public class MainActivity extends Activity {
                     }
 
                     public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                        Log.e(LOG_TAG, "Fail! " + errorResponse.toString());
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Fail to connect")
+                                .setMessage(errorResponse.toString()).show();
                     }
 
                     @Override
@@ -103,7 +125,12 @@ public class MainActivity extends Activity {
 
         });
     }
-
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // 为ActionBar扩展菜单项
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
     private void BoardAlertDialog() {
         final String[] ListStr = {"Gossip","Hate", "Sex", "Joke", "LOL"};
         AlertDialog.Builder MyListAlertDialog = new AlertDialog.Builder(this);
@@ -126,8 +153,7 @@ public class MainActivity extends Activity {
         MyListAlertDialog.setNeutralButton("取消", OkClick);
         MyListAlertDialog.show();
     }
-
-    public void PeriodAlertDialog()
+    private void PeriodAlertDialog()
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Set the Period less than 100");
@@ -137,17 +163,52 @@ public class MainActivity extends Activity {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Period = inputperiod.getText().toString();
+                if (Integer.valueOf(inputperiod.getText().toString()) < 100
+                        && Integer.valueOf(inputperiod.getText().toString()) > 0) {
+                    Period = inputperiod.getText().toString();
+                } else {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("Alert")
+                            .setMessage("Perid should >0 or <100").show();
+                }
             }
         });
-        builder.setNegativeButton("Cancel",new DialogInterface.OnClickListener()
-        {
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
-                    public  void onClick(DialogInterface d,int which)
-            {
+            public void onClick(DialogInterface d, int which) {
                 d.cancel();
             }
         });
         builder.show();
+    }
+    private void createshowlistactivity(JSONObject j)
+    {
+        this.j = j;
+        Intent intent = new Intent(this, Showlist.class);
+        Bundle bundle = new Bundle();
+        try {
+            int t = j.getInt("total");
+            int p = j.getInt("period");
+            String m = j.getString("message");
+            String[] titles = new String[Integer.valueOf(Limit)];
+            for(int i=0;i<Integer.valueOf(Limit);i++) {
+                titles[i] = j.getJSONArray("result").getJSONObject(i).getString("title");
+            }
+            Log.i(LOG_TAG,"total" + t);
+            Log.i(LOG_TAG, "peroid" + p);
+            Log.i(LOG_TAG, "message" + m);
+
+            bundle.putInt("total", t);
+            bundle.putInt("period", p);
+            bundle.putString("message", m);
+            bundle.putStringArray("titles", titles);
+            intent.putExtras(bundle);
+            startActivity(intent);
+
+        }
+        catch (JSONException e)
+        {
+            Log.i(LOG_TAG,"create err" + e.getMessage());
+        }
     }
 }
