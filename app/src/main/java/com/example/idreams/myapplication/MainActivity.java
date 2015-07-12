@@ -34,29 +34,27 @@ public class MainActivity extends ActionBarActivity {
     String Period="10";
     String Limit ="30";
     private JSONObject j;
-
+    TextView output;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.i(LOG_TAG, "onCreate Called! i");
-        Log.d(LOG_TAG, "onCreate Called! d");
-        Log.v(LOG_TAG, "onCreate Called! v");
-        Log.w(LOG_TAG, "onCreate Called! w");
-        Log.e(LOG_TAG, "onCreate Called! e");
+
 
         //Get串接傳輸按鈕與Post串接傳輸按鈕
         Button mBoard = (Button) findViewById(R.id.board);
         Button mPost = (Button) findViewById(R.id.post);
         Button mPeriod =(Button) findViewById(R.id.Periodbutton);
         final EditText mLimit =(EditText)findViewById(R.id.limitedittext);
-        final TextView output = (TextView) findViewById(R.id.textView);
-
+        output = (TextView) findViewById(R.id.textView);
+        updatetextview();
         mLimit.setOnClickListener(new View.OnClickListener(){
             @Override
             public  void onClick(View v)
             {
+                mLimit.setInputType(InputType.TYPE_CLASS_NUMBER);
                 Limit=mLimit.getText().toString();
+                updatetextview();
             }
         });
 
@@ -88,17 +86,10 @@ public class MainActivity extends ActionBarActivity {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                         try {
-                            new AlertDialog.Builder(MainActivity.this)
-                                    .setTitle("Get the data of Board")
-                                    .setMessage(Board).show();
                             // If the response is JSONObject instead of expected JSONArray
                             //response.getJSONArray("result").getJSONObject(0)
                             createshowlistactivity(response);
-                            Log.i(LOG_TAG, "Success! " + response.toString());
-                            Log.i(LOG_TAG, "Response Message: " + response.getString("message"));
-                            Log.i(LOG_TAG, "Response Period" + response.getInt("period"));
-                            Log.i(LOG_TAG, "Response Result" + response.getJSONArray("result").getJSONObject(0).getString("time"));
-                        } catch (Exception err) {
+                            } catch (Exception err) {
                             Log.e(LOG_TAG, err.getMessage());
                         }
 
@@ -142,6 +133,7 @@ public class MainActivity extends ActionBarActivity {
                         Toast.LENGTH_LONG).show();
                 Board = ListStr[which];
                 Log.i(LOG_TAG,Board);
+                updatetextview();
             }
         };
         // 建立按下取消什麼事情都不做的事件
@@ -164,12 +156,14 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (Integer.valueOf(inputperiod.getText().toString()) < 100
-                        && Integer.valueOf(inputperiod.getText().toString()) > 0) {
+                        && Integer.valueOf(inputperiod.getText().toString()) > 0
+                        ) {
                     Period = inputperiod.getText().toString();
+                    updatetextview();
                 } else {
                     new AlertDialog.Builder(MainActivity.this)
                             .setTitle("Alert")
-                            .setMessage("Perid should >0 or <100").show();
+                            .setMessage("Period should >0 && <100 && int").show();
                 }
             }
         });
@@ -194,6 +188,10 @@ public class MainActivity extends ActionBarActivity {
             for(int i=0;i<Integer.valueOf(Limit);i++) {
                 titles[i] = j.getJSONArray("result").getJSONObject(i).getString("title");
             }
+            String[] urls = new String[Integer.valueOf(Limit)];
+            for(int i=0;i<Integer.valueOf(Limit);i++) {
+                urls[i] = j.getJSONArray("result").getJSONObject(i).getString("url");
+            }
             Log.i(LOG_TAG,"total" + t);
             Log.i(LOG_TAG, "peroid" + p);
             Log.i(LOG_TAG, "message" + m);
@@ -202,6 +200,7 @@ public class MainActivity extends ActionBarActivity {
             bundle.putInt("period", p);
             bundle.putString("message", m);
             bundle.putStringArray("titles", titles);
+            bundle.putStringArray("urls",urls);
             intent.putExtras(bundle);
             startActivity(intent);
 
@@ -210,5 +209,9 @@ public class MainActivity extends ActionBarActivity {
         {
             Log.i(LOG_TAG,"create err" + e.getMessage());
         }
+    }
+    public void updatetextview()
+    {
+        output.setText("Board : "+ Board +"\nLimit :"+Limit +"\nPeriod : "+Period);
     }
 }
