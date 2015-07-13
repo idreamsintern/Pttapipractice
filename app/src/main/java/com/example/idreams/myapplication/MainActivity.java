@@ -1,12 +1,10 @@
 package com.example.idreams.myapplication;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -28,13 +26,14 @@ import org.json.JSONObject;
 import com.loopj.android.http.*;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
     final static String LOG_TAG = "MainActivity";
-    String Board="lol";
-    String Period="10";
-    String Limit ="30";
+    String Board = "lol";
+    String Period = "10";
+    String Limit = "30";
     private JSONObject j;
     TextView output;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,24 +43,22 @@ public class MainActivity extends ActionBarActivity {
         //Get串接傳輸按鈕與Post串接傳輸按鈕
         Button mBoard = (Button) findViewById(R.id.board);
         Button mPost = (Button) findViewById(R.id.post);
-        Button mPeriod =(Button) findViewById(R.id.Periodbutton);
-        final EditText mLimit =(EditText)findViewById(R.id.limitedittext);
+        Button mPeriod = (Button) findViewById(R.id.Periodbutton);
+        final EditText mLimit = (EditText) findViewById(R.id.limitedittext);
         output = (TextView) findViewById(R.id.textView);
         updatetextview();
-        mLimit.setOnClickListener(new View.OnClickListener(){
+        mLimit.setOnClickListener(new View.OnClickListener() {
             @Override
-            public  void onClick(View v)
-            {
+            public void onClick(View v) {
                 mLimit.setInputType(InputType.TYPE_CLASS_NUMBER);
-                Limit=mLimit.getText().toString();
+                Limit = mLimit.getText().toString();
                 updatetextview();
             }
         });
 
-        mPeriod.setOnClickListener(new View.OnClickListener(){
+        mPeriod.setOnClickListener(new View.OnClickListener() {
             @Override
-                public  void onClick(View v)
-            {
+            public void onClick(View v) {
                 PeriodAlertDialog();
             }
         });
@@ -70,7 +67,7 @@ public class MainActivity extends ActionBarActivity {
             public void onClick(View v) {
                 BoardAlertDialog();
             }
-            });
+        });
         //按下mGet按鈕進行HttpGet串接傳輸
         mPost.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,7 +86,7 @@ public class MainActivity extends ActionBarActivity {
                             // If the response is JSONObject instead of expected JSONArray
                             //response.getJSONArray("result").getJSONObject(0)
                             createshowlistactivity(response);
-                            } catch (Exception err) {
+                        } catch (Exception err) {
                             Log.e(LOG_TAG, err.getMessage());
                         }
 
@@ -107,23 +104,21 @@ public class MainActivity extends ActionBarActivity {
                     }
                 });
                 //background service 更新
-
-
-
-
             }
 
 
         });
     }
+
     public boolean onCreateOptionsMenu(Menu menu) {
         // 为ActionBar扩展菜单项
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
     }
+
     private void BoardAlertDialog() {
-        final String[] ListStr = {"Gossip","Hate", "Sex", "Joke", "LOL"};
+        final String[] ListStr = {"Gossip", "Hate", "Sex", "Joke", "LOL"};
         AlertDialog.Builder MyListAlertDialog = new AlertDialog.Builder(this);
         MyListAlertDialog.setTitle("選擇你要的板");
         // 建立List的事件
@@ -132,7 +127,7 @@ public class MainActivity extends ActionBarActivity {
                 Toast.makeText(MainActivity.this, ListStr[which],// 顯示所點選的選項
                         Toast.LENGTH_LONG).show();
                 Board = ListStr[which];
-                Log.i(LOG_TAG,Board);
+                Log.i(LOG_TAG, Board);
                 updatetextview();
             }
         };
@@ -145,8 +140,8 @@ public class MainActivity extends ActionBarActivity {
         MyListAlertDialog.setNeutralButton("取消", OkClick);
         MyListAlertDialog.show();
     }
-    private void PeriodAlertDialog()
-    {
+
+    private void PeriodAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Set the Period less than 100");
         final EditText inputperiod = new EditText(this);
@@ -175,8 +170,8 @@ public class MainActivity extends ActionBarActivity {
         });
         builder.show();
     }
-    private void createshowlistactivity(JSONObject j)
-    {
+
+    private void createshowlistactivity(JSONObject j) {
         this.j = j;
         Intent intent = new Intent(this, Showlist.class);
         Bundle bundle = new Bundle();
@@ -185,14 +180,14 @@ public class MainActivity extends ActionBarActivity {
             int p = j.getInt("period");
             String m = j.getString("message");
             String[] titles = new String[Integer.valueOf(Limit)];
-            for(int i=0;i<Integer.valueOf(Limit);i++) {
+            for (int i = 0; i < Integer.valueOf(Limit); i++) {
                 titles[i] = j.getJSONArray("result").getJSONObject(i).getString("title");
             }
             String[] urls = new String[Integer.valueOf(Limit)];
-            for(int i=0;i<Integer.valueOf(Limit);i++) {
+            for (int i = 0; i < Integer.valueOf(Limit); i++) {
                 urls[i] = j.getJSONArray("result").getJSONObject(i).getString("url");
             }
-            Log.i(LOG_TAG,"total" + t);
+            Log.i(LOG_TAG, "total" + t);
             Log.i(LOG_TAG, "peroid" + p);
             Log.i(LOG_TAG, "message" + m);
 
@@ -200,18 +195,16 @@ public class MainActivity extends ActionBarActivity {
             bundle.putInt("period", p);
             bundle.putString("message", m);
             bundle.putStringArray("titles", titles);
-            bundle.putStringArray("urls",urls);
+            bundle.putStringArray("urls", urls);
             intent.putExtras(bundle);
             startActivity(intent);
 
-        }
-        catch (JSONException e)
-        {
-            Log.i(LOG_TAG,"create err" + e.getMessage());
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, "create err" + e.getMessage());
         }
     }
-    public void updatetextview()
-    {
-        output.setText("Board : "+ Board +"\nLimit :"+Limit +"\nPeriod : "+Period);
+
+    public void updatetextview() {
+        output.setText("Board : " + Board + "\nLimit :" + Limit + "\nPeriod : " + Period);
     }
 }

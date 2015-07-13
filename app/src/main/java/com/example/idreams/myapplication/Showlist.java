@@ -22,25 +22,26 @@ import android.widget.Toast;
 public class Showlist extends ListActivity {
 
     final static String LOG_TAG = "ShowList";
-    String [] urls;
-    String [] boardlist;
+    String[] urls;
+    String[] boardlist;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //can't use setcontentviewㄇ
+        //can't use setcontentview
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-        Log.i(LOG_TAG,"get intent");
+        Log.i(LOG_TAG, "get intent");
         int total = bundle.getInt("total");
         int period = bundle.getInt("period");
         String message = bundle.getString("message");
         boardlist = bundle.getStringArray("titles");
         urls = bundle.getStringArray("urls");
-        Log.i(LOG_TAG,"total" + total);
+        Log.i(LOG_TAG, "total" + total);
         Log.i(LOG_TAG, "peroid" + period);
         Log.i(LOG_TAG, "message" + message);
         //ListView list = (ListView)findViewById(R.id.listView) ;
-        ArrayAdapter<String> a =new ArrayAdapter<>(this,R.layout.list_item, boardlist);
+        ArrayAdapter<String> a = new ArrayAdapter<>(this, R.layout.list_item, boardlist);
         setListAdapter(a);
 
     }
@@ -56,19 +57,20 @@ public class Showlist extends ListActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
     public boolean onCreateOptionsMenu(Menu menu) {
         // 为ActionBar扩展菜单项
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_showlist, menu);
         return super.onCreateOptionsMenu(menu);
     }
+
     @Override
-    protected void onListItemClick(ListView l,View v,int position,long id)
-    {
+    protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
         String url = urls[position];
-        Toast.makeText(this,boardlist[position],Toast.LENGTH_LONG).show();
-        Intent i=new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        Toast.makeText(this, boardlist[position], Toast.LENGTH_LONG).show();
+        Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
         startActivity(i);
     }
 }
